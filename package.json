@@ -12,15 +12,21 @@
     "probot-app"
   ],
   "scripts": {
-    "start": "probot run ./index.js",
+    "start": "node src/vulnerableApp.js",
     "test": "node --test"
   },
   "dependencies": {
-    "probot": "^13.0.1"
+    "probot": "^9.0.1",
+    "lodash": "4.17.15",
+    "express": "4.16.0",
+    "cryptiles": "4.1.2",
+    "hoek": "4.2.0",
+    "moment": "2.19.3"
   },
   "devDependencies": {
-    "nock": "^14.0.0-beta.5",
-    "smee-client": "^2.0.0"
+    "jest": "24.8.0",
+    "nodemon": "1.18.4",
+    "smee-client": "1.0.1"
   },
   "engines": {
     "node": ">= 18"
