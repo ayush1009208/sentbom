@@ -1,0 +1,27 @@
+security:
+  # Insecure: Weak SSL configuration
+  ssl_verify: false
+  min_tls_version: TLSv1.0
+  
+database:
+  # Insecure: Exposed credentials
+  username: admin
+  password: admin123
+  host: database.example.com
+  port: 5432
+
+jwt:
+  # Insecure: Weak secret and algorithm
+  secret: "too_simple_secret"
+  algorithm: "none"
+  
+logging:
+  # Insecure: Sensitive data logging
+  log_level: DEBUG
+  log_passwords: true
+  log_credit_cards: true
+
+# Insecure: Public cloud storage
+storage:
+  bucket: "public-bucket"
+  permissions: "public-read-write"
