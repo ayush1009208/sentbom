@@ -19,22 +19,31 @@ jobs:
     steps:
       - name: Checkout PR Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Run Trivy Scan
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         env:
           TRIVY_DISABLE_VEX_NOTICE: true
         with:
-          scan-type: "fs"
-          format: "table"
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+          vuln-type: 'os,library'
           ignore-unfixed: true
-          output: trivy_report.txt
+          output: 'trivy_report.txt'
 
-      - name: Upload Trivy Report as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-security-report
-          path: trivy_report.txt
+      - name: Check if report exists and has content
+        id: check_report
+        run: |
+          if [ -f trivy_report.txt ] && [ -s trivy_report.txt ]; then
+            echo "Report exists and has content"
+            cat trivy_report.txt
+          else
+            echo "No vulnerabilities found" > trivy_report.txt
+          fi
 
       - name: Read Full Trivy Report
         id: read_report
@@ -47,6 +56,7 @@ jobs:
 
       - name: Comment Full Trivy Report on PR
         uses: peter-evans/create-or-update-comment@v4
+        if: github.event_name == 'pull_request'
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
