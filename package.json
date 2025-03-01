@@ -16,12 +16,13 @@
     "test": "node --test"
   },
   "dependencies": {
-    "probot": "^9.0.1",
-    "lodash": "4.17.15",
-    "express": "4.16.0",
     "cryptiles": "4.1.2",
+    "dotenv": "^16.4.5",
+    "express": "4.16.0",
     "hoek": "4.2.0",
-    "moment": "2.19.3"
+    "lodash": "4.17.15",
+    "moment": "2.19.3",
+    "probot": "^9.15.1"
   },
   "devDependencies": {
     "jest": "24.8.0",
@@ -29,7 +30,6 @@
     "smee-client": "1.0.1"
   },
   "engines": {
-    "node": ">= 18"
-  },
-  "type": "module"
+    "node": ">= 10"
+  }
 }
