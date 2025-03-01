@@ -1,0 +1,25 @@
+name: Hello Workflow
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  hello-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Say Hello
+        run: |
+          echo "Hello! Processing Pull Request..."
+          echo "Repository: ${{ github.repository }}"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+
+      - name: Check Pull Request Files
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Files changed in this PR:"
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
