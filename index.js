@@ -39,25 +39,39 @@ module.exports = (app) => {
 
   // Handle pull request changes
   app.on(['pull_request.opened', 'pull_request.synchronize'], async (context) => {
+    console.log(`🔄 Processing PR #${context.payload.pull_request.number}`);
+    
     const pr = context.payload.pull_request;
+    console.log(`📦 Fetching PR files from: ${pr.head.ref}`);
+    
     const files = await context.octokit.pulls.listFiles(context.pullRequest());
+    console.log(`📁 Found ${files.data.length} files to analyze`);
 
     for (const file of files.data) {
+      console.log(`\n📝 Analyzing file: ${file.filename}`);
+      
       if (file.status === 'modified' || file.status === 'added') {
+        console.log(`🔍 Running YARA scan on file content`);
         const matches = await scanCode(file.patch, yaraRules);
         
         for (const match of matches) {
+          console.log(`⚠️ Found security issue: ${match.rule}`);
+          console.log(`🤖 Requesting Gemini analysis`);
+          
           const analysis = await geminiAnalyzer.analyzeViolation(file.patch, match.rule);
           
+          console.log(`💬 Creating review comment`);
           await context.octokit.pulls.createReviewComment(context.issue({
             body: analysis,
             commit_id: pr.head.sha,
             path: file.filename,
             line: match.line
           }));
+          console.log(`✅ Posted review comment successfully`);
         }
       }
     }
+    console.log(`✨ Completed PR analysis`);
   });
 
   // Handle issue comments
