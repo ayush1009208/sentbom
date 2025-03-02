@@ -6,6 +6,10 @@ class GeminiAnalyzer {
     }
 
     async analyzeViolation(code, violation) {
+        console.log(`🤖 Analyzing violation with Gemini AI`);
+        console.log(`📝 Code snippet length: ${code.length}`);
+        console.log(`🚨 Violation type: ${violation}`);
+
         const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
 
         const prompt = `Analyze this code snippet that violates a security rule:
@@ -25,7 +29,10 @@ class GeminiAnalyzer {
   @@ -line,count +line,count @@
   actual diff content`;
 
+        console.log(`🚀 Sending request to Gemini API`);
         const result = await model.generateContent(prompt);
+        console.log(`✅ Received response from Gemini API`);
+        
         return result.response.text();
     }
 }
