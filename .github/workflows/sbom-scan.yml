@@ -15,6 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install Syft
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
@@ -32,14 +37,34 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Run Vulnerability Scan with Grype
-        run: grype sbom:sbom.json -o table
-
-      - name: Fail on Critical Vulnerabilities
+      - name: Process Vulnerability Results
         run: |
-          if grype sbom:sbom.json -o json | jq '.matches[] | select(.vulnerability.severity=="Critical")'; then
-            echo "Critical vulnerabilities found!"
-            exit 1
-          else
-            echo "No critical vulnerabilities found."
-          fi
+          node scripts/process-vulnerabilities.js
+
+      - name: Post Vulnerability Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('vulnerability-report.md', 'utf8');
+            
+            if (context.eventName === 'pull_request') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            } else {
+              // For push events, create an issue if critical vulnerabilities found
+              if (report.includes('🔴 Critical:') && !report.includes('Critical: 0')) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: '🚨 Critical Security Vulnerabilities Detected',
+                  body: report,
+                  labels: ['security', 'critical']
+                });
+              }
+            }

@@ -12,10 +12,11 @@
     "probot-app"
   ],
   "scripts": {
-    "start": "node src/vulnerableApp.js",
+    "start": "probot run ./index.js",
     "test": "node --test"
   },
   "dependencies": {
+    "@octokit/auth-app": "^7.1.5",
     "cryptiles": "4.1.2",
     "dotenv": "^16.4.5",
     "express": "4.16.0",
