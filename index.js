@@ -1,36 +1,18 @@
 require('dotenv').config();
-
-const getResponse = (comment, author) => {
-  const responses = [
-    `Thanks for your comment @${author}! 🎉`,
-    `Good point @${author}! 💡`,
-    `Thanks for the feedback @${author}! 🙌`,
-    `Noted @${author}! 📝`,
-    `Interesting perspective @${author}! 🤔`
-  ];
-  
-  // Special responses for commands
-  if (comment.includes('/scan')) {
-    return `I'll start a security scan right away @${author}! 🔍`;
-  }
-  if (comment.includes('/help')) {
-    return `Available commands:\n- /scan: Run security scan\n- /label: Add labels\n- /help: Show this help`;
-  }
-  
-  return responses[Math.floor(Math.random() * responses.length)];
-};
+const { loadYaraRules, scanCode } = require('./src/yaraScanner');
+const GeminiAnalyzer = require('./src/geminiAnalyzer');
 
 /**
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
   app.log.info("Sentbom GitHub bot is starting...");
+  const geminiAnalyzer = new GeminiAnalyzer(process.env.GEMINI_API_KEY);
+  let yaraRules;
 
-  // Verify events are properly configured
-  app.on("installation.created", async (context) => {
-    app.log.info("App installed. Checking event subscriptions...");
-    const events = await context.octokit.apps.getSubscriptions();
-    app.log.info(`Subscribed to events: ${JSON.stringify(events.data)}`);
+  // Initialize YARA rules
+  loadYaraRules().then(rules => {
+    yaraRules = rules;
   });
 
   // Handle new issue creation
@@ -55,7 +37,30 @@ module.exports = (app) => {
     return context.octokit.issues.createComment(prComment);
   });
 
-  // Enhanced issue comment handler
+  // Handle pull request changes
+  app.on(['pull_request.opened', 'pull_request.synchronize'], async (context) => {
+    const pr = context.payload.pull_request;
+    const files = await context.octokit.pulls.listFiles(context.pullRequest());
+
+    for (const file of files.data) {
+      if (file.status === 'modified' || file.status === 'added') {
+        const matches = await scanCode(file.patch, yaraRules);
+        
+        for (const match of matches) {
+          const analysis = await geminiAnalyzer.analyzeViolation(file.patch, match.rule);
+          
+          await context.octokit.pulls.createReviewComment(context.issue({
+            body: analysis,
+            commit_id: pr.head.sha,
+            path: file.filename,
+            line: match.line
+          }));
+        }
+      }
+    }
+  });
+
+  // Handle issue comments
   app.on("issue_comment.created", async (context) => {
     const comment = context.payload.comment;
     const author = comment.user.login;
