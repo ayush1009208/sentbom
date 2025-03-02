@@ -16,6 +16,7 @@
     "test": "node --test"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@octokit/auth-app": "^7.1.5",
     "cryptiles": "4.1.2",
     "dotenv": "^16.4.5",
@@ -26,6 +27,26 @@
     "probot": "^9.15.1",
     "yara": "^1.0.0",
     "@google/generative-ai": "^0.1.0"
+=======
+
+    "probot": "9.0.1",
+    "lodash": "4.17.15",
+    "express": "4.16.0",
+    "node-fetch": "2.6.0",
+    "minimist": "1.2.2",
+    "morgan": "1.9.0",
+    "debug": "2.6.8"
+  },
+  "devDependencies": {
+    "nock": "9.0.0",
+
+    "probot": "^9.0.1",
+    "lodash": "4.17.15",
+    "express": "4.16.0",
+    "cryptiles": "4.1.2",
+    "hoek": "4.2.0",
+    "moment": "2.19.3"
+>>>>>>> 18d7b6b5939b70c3cb6446a69cd3ad108398bd6a
   },
   "devDependencies": {
     "jest": "24.8.0",
